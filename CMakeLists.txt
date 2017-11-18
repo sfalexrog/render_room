@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.6)
 project(cmc_raymarch)
 
+set(CMAKE_CXX_STANDARD 11)
+
 if (NOT EXISTS deps/SDL/CMakeLists.txt)
 	if (NOT EXISTS tmp/SDL-2.0.7.tar.gz)
 		message(STATUS "Requesting SDL sources from official site")
@@ -20,5 +22,7 @@ add_library(Sdl2 INTERFACE)
 add_library(Sdl2Static INTERFACE)
 target_link_libraries(Sdl2 INTERFACE SDL2 SDL2main)
 target_link_libraries(Sdl2Static INTERFACE SDL2-static SDL2main)
+
+add_subdirectory(deps)
 
 add_subdirectory(src)
