@@ -9,10 +9,13 @@
 
 #include "util/Logger.h"
 #include "ui/LogWindow.h"
+#include "ui/MapWindow.h"
+
+#include "format/wavefront_obj_loader.h"
 
 int main(int argc, char** argv)
 {
-    SDL_Window *w = SDL_CreateWindow("CMC Raymarching", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 960, 540, SDL_WINDOW_OPENGL);
+    SDL_Window *w = SDL_CreateWindow("CMC Raymarching", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1600, 800, SDL_WINDOW_OPENGL);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -49,6 +52,10 @@ int main(int argc, char** argv)
     gl::glGetIntegerv(gl::GL_MAX_COMPUTE_WORK_GROUP_INVOCATIONS, &maxComputeInvocations);
     Log(DEBUG) << "Total invocations: " << maxComputeInvocations << std::endl;
 
+    auto load_start = SDL_GetTicks();
+    auto room = cmcray::Loader::loadObj("cmc_rooms/room01.obj");
+    Log(INFO) << "Loading room took " << (SDL_GetTicks() - load_start) << " ms";
+
     bool done = false;
     auto start_time = SDL_GetTicks();
     while (!done)
@@ -71,15 +78,8 @@ int main(int argc, char** argv)
         }
         ImGui::End();
 
-        auto current_time = SDL_GetTicks();
-
-        if (current_time - start_time > 250)
-        {
-            Log(INFO) << "250 ticks passed; time is" << current_time;
-            start_time = current_time;
-        }
-
         cmcray::LogWindow::draw();
+        cmcray::MapWindow::draw(room);
 
         gl::glClearColor(0, 0, 0, 255);
         gl::glClear(gl::GL_COLOR_BUFFER_BIT);

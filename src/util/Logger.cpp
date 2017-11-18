@@ -10,7 +10,7 @@ namespace cmcray
 {
     namespace InteractiveLog
     {
-        const size_t MAX_INTERACTIVE_LOG_LENGTH = 64;
+        const size_t MAX_INTERACTIVE_LOG_LENGTH = 1024;
 
         std::vector<std::string> circularLog;
 

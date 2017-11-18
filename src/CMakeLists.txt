@@ -7,12 +7,17 @@ target_sources(cmc_raymarch PRIVATE
 		ui/imgui_impl.cpp
 		ui/LogWindow.cpp
 		ui/LogWindow.h
+		ui/MapWindow.cpp
+		ui/MapWindow.h
 		render/compute.cpp
 		render/render.cpp
 		render/voxel_map.cpp
 		render/voxel_map.h
 		util/Logger.cpp
 		util/Logger.h
+		format/mesh.h
+		format/wavefront_obj_loader.cpp
+		format/wavefront_obj_loader.h
 		)
 
 target_include_directories(cmc_raymarch
