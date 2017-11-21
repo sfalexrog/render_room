@@ -40,7 +40,7 @@ namespace cmcray
             const float m = std::min(mx, my);
 
             const float x0 = -m * bounds[0].x;
-            const float y0 =  m * bounds[1].y;
+            const float y0 = -m * bounds[0].y;
 
             ImGui::SetNextWindowSize(ImVec2(size_x, size_y), ImGuiCond_Always);
             ImGui::Begin("Room Mesh", nullptr, ImGuiWindowFlags_NoResize);
@@ -54,9 +54,9 @@ namespace cmcray
                 auto v1 = mesh.v[mesh.indices[i]].pos;
                 auto v2 = mesh.v[mesh.indices[i + 1]].pos;
                 auto v3 = mesh.v[mesh.indices[i + 2]].pos;
-                a = ImVec2(p.x + x0 + v1.x * m, p.y + y0 - v1.z * m);
-                b = ImVec2(p.x + x0 + v2.x * m, p.y + y0 - v2.z * m);
-                c = ImVec2(p.x + x0 + v3.x * m, p.y + y0 - v3.z * m);
+                a = ImVec2(p.x + x0 + v1.x * m, p.y + y0 + v1.z * m);
+                b = ImVec2(p.x + x0 + v2.x * m, p.y + y0 + v2.z * m);
+                c = ImVec2(p.x + x0 + v3.x * m, p.y + y0 + v3.z * m);
                 drawList->AddTriangle(a, b, c, ImColor(0, 255, 0));
             }
 
@@ -66,9 +66,9 @@ namespace cmcray
             auto rightBeam = glm::vec3{cos(-camera.fov/2 + camera.rotation.y), 0.0f, -sin(-camera.fov/2 + camera.rotation.y)};
             auto camLeft = camPos + leftBeam * camera.far;
             auto camRight = camPos + rightBeam * camera.far;
-            auto a = ImVec2(p.x + x0 + camPos.x * m, p.y + y0 - camPos.z * m);
-            auto b = ImVec2(p.x + x0 + camLeft.x * m, p.y + y0 - camLeft.z * m);
-            auto c = ImVec2(p.x + x0 + camRight.x * m, p.y + y0 - camRight.z * m);
+            auto a = ImVec2(p.x + x0 + camPos.x * m, p.y + y0 + camPos.z * m);
+            auto b = ImVec2(p.x + x0 + camLeft.x * m, p.y + y0 + camLeft.z * m);
+            auto c = ImVec2(p.x + x0 + camRight.x * m, p.y + y0 + camRight.z * m);
 
             drawList->AddTriangle(a, b, c, ImColor(255, 255, 0));
 
