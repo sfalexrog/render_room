@@ -12,10 +12,16 @@ namespace cmcray
 {
     struct Mesh
     {
-        std::vector<glm::vec3> vertices;
+        struct Vertex {
+            glm::vec3 pos;
+            glm::vec3 norm;
+        };
+        std::vector<Vertex> v;
+        //std::vector<glm::vec3> vertices;
+        //std::vector<glm::vec3> normals;
         std::vector<uint32_t> indices;
 
-        Mesh() : vertices(), indices() {}
+        Mesh() : v{}, indices{} {}
     };
 }
 

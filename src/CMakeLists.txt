@@ -9,8 +9,12 @@ target_sources(cmc_raymarch PRIVATE
 		ui/LogWindow.h
 		ui/MapWindow.cpp
 		ui/MapWindow.h
+		render/camera.cpp
+		render/camera.h
 		render/compute.cpp
 		render/render.cpp
+		render/shader.cpp
+		render/shader.h
 		render/voxel_map.cpp
 		render/voxel_map.h
 		util/Logger.cpp

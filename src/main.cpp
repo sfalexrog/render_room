@@ -1,17 +1,28 @@
 #include <SDL.h>
 #include <glbinding/gl33core/gl.h>
 
+#include <unistd.h>
+#include <cstdio>
+
 #include <imgui.h>
 #include "ui/imgui_impl_sdl_gl3.h"
 #include <glbinding/Binding.h>
 #include <glbinding/gl43core/gl.h>
 #include <iostream>
+#include <fstream>
+#include <sys/stat.h>
 
 #include "util/Logger.h"
 #include "ui/LogWindow.h"
 #include "ui/MapWindow.h"
+#include "render/camera.h"
+
+#include "util/InteractiveLog.h"
 
 #include "format/wavefront_obj_loader.h"
+
+#include "render/shader.h"
+#include "render/render.h"
 
 int main(int argc, char** argv)
 {
@@ -56,11 +67,68 @@ int main(int argc, char** argv)
     auto room = cmcray::Loader::loadObj("cmc_rooms/room01.obj");
     Log(INFO) << "Loading room took " << (SDL_GetTicks() - load_start) << " ms";
 
+    cmcray::InteractiveLog::setMinVerbosity(cmcray::Logger::LogLevel::VERBOSE);
+    cmcray::Logger::minLogLevel() = cmcray::Logger::VERBOSE;
+
+    Log(INFO) << "Loading shaders";
+
+    auto renderShader = cmcray::Shader();
+    auto computeShader = cmcray::Shader();
+
+    {
+        const char* vertShaderFile = "shaders/polyrender.vert";
+        struct stat sb;
+        if (!stat(vertShaderFile, &sb))
+        {
+            std::vector<char> vertShaderSrc(sb.st_size);
+            std::ifstream in(vertShaderFile);
+            in.read(vertShaderSrc.data(), vertShaderSrc.size());
+            renderShader.source(vertShaderSrc.data(), cmcray::Shader::Type::Vertex);
+        }
+        const char* fragShaderFile = "shaders/polyrender.frag";
+        if (!stat(fragShaderFile, &sb))
+        {
+            std::vector<char> fragShaderSrc(sb.st_size);
+            std::ifstream in(fragShaderFile);
+            in.read(fragShaderSrc.data(), fragShaderSrc.size());
+            renderShader.source(fragShaderSrc.data(), cmcray::Shader::Type::Fragment);
+        }
+        renderShader.link();
+
+        const char* compShaderFile = "shaders/raymarch_dumb.comp";
+        if (!stat(compShaderFile, &sb))
+        {
+            std::vector<char> compShaderSrc(sb.st_size);
+            std::ifstream in(compShaderFile);
+            in.read(compShaderSrc.data(), compShaderSrc.size());
+            computeShader.source(compShaderSrc.data(), cmcray::Shader::Type::Compute);
+            computeShader.link();
+        }
+    }
+
+    auto &cam = cmcray::getDefaultCamera();
+    cam.fov = glm::pi<float>() / 2.0f;
+    cam.position.x = -10000;
+    cam.position.y = 1500;
+    cam.position.z = 5000;
+
+    cam.targetSize = glm::vec2{1600.0f, 800.0f};
+
+    cam.near = 100.0f;
+    cam.far = 100000.0f;
+
+    cmcray::Renderer::init();
+
+    Log(INFO) << "Adding room to scene";
+    cmcray::Renderer::addToScene(room);
+
     bool done = false;
     auto start_time = SDL_GetTicks();
+    float shift = 0, rot = 0;
     while (!done)
     {
         SDL_Event e;
+
         while(SDL_PollEvent(&e))
         {
             ImGui_ImplSdlGL3_ProcessEvent(&e);
@@ -68,8 +136,50 @@ int main(int argc, char** argv)
                 case SDL_QUIT:
                     done = true;
                     break;
+                case SDL_KEYDOWN:
+                    switch(e.key.keysym.scancode)
+                    {
+                        case SDL_SCANCODE_UP:
+                            shift = 1;
+                            break;
+                        case SDL_SCANCODE_DOWN:
+                            shift = -1;
+                            break;
+                        case SDL_SCANCODE_LEFT:
+                            rot = 1;
+                            break;
+                        case SDL_SCANCODE_RIGHT:
+                            rot = -1;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case SDL_KEYUP:
+                    switch(e.key.keysym.scancode)
+                    {
+                        case SDL_SCANCODE_UP:
+                        case SDL_SCANCODE_DOWN:
+                            shift = 0;
+                            break;
+                        case SDL_SCANCODE_LEFT:
+                        case SDL_SCANCODE_RIGHT:
+                            rot = 0;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
             }
         }
+
+        auto frame_time = SDL_GetTicks() - start_time;
+
+        glm::vec3 camDirection = glm::vec3{cos(cam.rotation.y), 0.0f, -sin(cam.rotation.y)};
+        cam.position += camDirection * (shift * frame_time * 2.0f);
+        cam.rotation.y += rot * frame_time * (glm::pi<float>() / 1024.0f);
+
+        start_time = SDL_GetTicks();
         ImGui_ImplSdlGL3_NewFrame(w);
 
         ImGui::Begin("Ray Marching Controls");
@@ -79,10 +189,13 @@ int main(int argc, char** argv)
         ImGui::End();
 
         cmcray::LogWindow::draw();
-        cmcray::MapWindow::draw(room);
+        cmcray::MapWindow::draw(room, cam);
 
         gl::glClearColor(0, 0, 0, 255);
-        gl::glClear(gl::GL_COLOR_BUFFER_BIT);
+        gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);
+
+        cmcray::Renderer::render(renderShader, cam);
+
         ImGui::Render();
         SDL_GL_SwapWindow(w);
     }

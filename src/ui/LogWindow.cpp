@@ -11,7 +11,8 @@ namespace cmcray
 
         namespace
         {
-            const char *WindowName = "Logger";
+            const char *WindowName = "Application Log";
+            bool scrollToLast = true;
         }
 
         void draw()
@@ -19,7 +20,8 @@ namespace cmcray
             ImGui::SetNextWindowSize(ImVec2(500, 400), ImGuiCond_FirstUseEver);
             ImGui::Begin(WindowName);
             if (ImGui::Button("Clear")) InteractiveLog::clearLog();
-            //ImGui::SameLine();
+            ImGui::SameLine();
+            ImGui::Checkbox("Scroll to last", &scrollToLast);
             ImGui::Separator();
             ImGui::BeginChild("scrolling");
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0,1));
@@ -27,7 +29,10 @@ namespace cmcray
             {
                 ImGui::TextUnformatted(InteractiveLog::getLogLineAt(i).c_str());
             }
-            ImGui::SetScrollHere(1.0f);
+            if (scrollToLast)
+            {
+                ImGui::SetScrollHere(1.0f);
+            }
 
             ImGui::PopStyleVar();
             ImGui::EndChild();
