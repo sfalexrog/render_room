@@ -80,7 +80,7 @@ int main(int argc, char** argv)
         struct stat sb;
         if (!stat(vertShaderFile, &sb))
         {
-            std::vector<char> vertShaderSrc(sb.st_size);
+            std::vector<char> vertShaderSrc(sb.st_size, '\0');
             std::ifstream in(vertShaderFile);
             in.read(vertShaderSrc.data(), vertShaderSrc.size());
             renderShader.source(vertShaderSrc.data(), cmcray::Shader::Type::Vertex);
@@ -88,7 +88,7 @@ int main(int argc, char** argv)
         const char* fragShaderFile = "shaders/polyrender.frag";
         if (!stat(fragShaderFile, &sb))
         {
-            std::vector<char> fragShaderSrc(sb.st_size);
+            std::vector<char> fragShaderSrc(sb.st_size, '\0');
             std::ifstream in(fragShaderFile);
             in.read(fragShaderSrc.data(), fragShaderSrc.size());
             renderShader.source(fragShaderSrc.data(), cmcray::Shader::Type::Fragment);
@@ -98,7 +98,7 @@ int main(int argc, char** argv)
         const char* compShaderFile = "shaders/raymarch_dumb.comp";
         if (!stat(compShaderFile, &sb))
         {
-            std::vector<char> compShaderSrc(sb.st_size);
+            std::vector<char> compShaderSrc(sb.st_size, '\0');
             std::ifstream in(compShaderFile);
             in.read(compShaderSrc.data(), compShaderSrc.size());
             computeShader.source(compShaderSrc.data(), cmcray::Shader::Type::Compute);
