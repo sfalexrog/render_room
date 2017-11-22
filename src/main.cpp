@@ -24,9 +24,18 @@
 #include "render/shader.h"
 #include "render/render.h"
 
+#include "util/Config.h"
+
 int main(int argc, char** argv)
 {
-    SDL_Window *w = SDL_CreateWindow("CMC Raymarching", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1600, 800, SDL_WINDOW_OPENGL);
+    cmcray::Config::init(argc, argv);
+
+    SDL_Window *w = SDL_CreateWindow("CMC Raymarching",
+                                     SDL_WINDOWPOS_UNDEFINED,
+                                     SDL_WINDOWPOS_UNDEFINED,
+                                     cmcray::Config::screenX,
+                                     cmcray::Config::screenY,
+                                     SDL_WINDOW_OPENGL);
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
@@ -80,7 +89,7 @@ int main(int argc, char** argv)
         struct stat sb;
         if (!stat(vertShaderFile, &sb))
         {
-            std::vector<char> vertShaderSrc(sb.st_size, '\0');
+            std::vector<char> vertShaderSrc(sb.st_size + 1, '\0');
             std::ifstream in(vertShaderFile);
             in.read(vertShaderSrc.data(), vertShaderSrc.size());
             renderShader.source(vertShaderSrc.data(), cmcray::Shader::Type::Vertex);
@@ -88,7 +97,7 @@ int main(int argc, char** argv)
         const char* fragShaderFile = "shaders/polyrender.frag";
         if (!stat(fragShaderFile, &sb))
         {
-            std::vector<char> fragShaderSrc(sb.st_size, '\0');
+            std::vector<char> fragShaderSrc(sb.st_size + 1, '\0');
             std::ifstream in(fragShaderFile);
             in.read(fragShaderSrc.data(), fragShaderSrc.size());
             renderShader.source(fragShaderSrc.data(), cmcray::Shader::Type::Fragment);
@@ -98,7 +107,7 @@ int main(int argc, char** argv)
         const char* compShaderFile = "shaders/raymarch_dumb.comp";
         if (!stat(compShaderFile, &sb))
         {
-            std::vector<char> compShaderSrc(sb.st_size, '\0');
+            std::vector<char> compShaderSrc(sb.st_size + 1, '\0');
             std::ifstream in(compShaderFile);
             in.read(compShaderSrc.data(), compShaderSrc.size());
             computeShader.source(compShaderSrc.data(), cmcray::Shader::Type::Compute);
