@@ -17,6 +17,8 @@ target_sources(cmc_raymarch PRIVATE
 		render/shader.h
 		render/voxel_map.cpp
 		render/voxel_map.h
+		util/Config.cpp
+		util/Config.h
 		util/Logger.cpp
 		util/Logger.h
 		format/mesh.h
@@ -30,9 +32,10 @@ target_include_directories(cmc_raymarch
 		)
 
 target_link_libraries(cmc_raymarch
-		Sdl2Static
+		Sdl2
 		Imgui
 		Glm
 		glbinding
+		RapidJson
 		)
 
