@@ -7,3 +7,6 @@
 [submodule "deps/glbinding"]
 	path = deps/glbinding
 	url = https://github.com/cginternals/glbinding
+[submodule "deps/rapidjson"]
+	path = deps/rapidjson
+	url = https://github.com/Tencent/rapidjson

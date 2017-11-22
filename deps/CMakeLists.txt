@@ -15,4 +15,8 @@ target_include_directories(Imgui PUBLIC
         imgui
         )
 
+# RapidJSON seems to be a header-only library, much like glm
+add_library(RapidJson INTERFACE)
+target_include_directories(RapidJson INTERFACE rapidjson/include)
+
 add_subdirectory(glbinding)
