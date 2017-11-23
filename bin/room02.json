@@ -1,0 +1,17 @@
+{
+    "sourceFile": "cmc_rooms/room02.obj",
+    "sourceTransform": [1.0, 0.0, 0.0, 0.0,
+                        0.0, 0.0, 1.0, 0.0,
+                        0.0, 1.0, 0.0, 0.0,
+                        0.0, 0.0, 0.0, 1.0
+    ],
+    "scaleFactor": 1000.0,
+    "cameraPos": [
+        1000.0,
+        1500.0,
+        1000.0
+    ],
+    "cameraNear": 100.0,
+    "cameraFar": 10000.0,
+    "lightIntensity": 2.0
+}
