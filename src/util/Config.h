@@ -4,6 +4,7 @@
 #include <string>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
+#include <glm/vec2.hpp>
 
 namespace cmcray
 {
@@ -14,6 +15,8 @@ namespace cmcray
 #include "Config.inl"
 
 #undef OPT
+
+        void saveConfigToFile(const char* fileName);
 
         void init(int argc, char** argv);
 
