@@ -8,6 +8,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <cstdlib>
 
 namespace cmcray
 {
@@ -66,6 +67,10 @@ namespace cmcray
             if (_ll >= minLogLevel())
             {
                 _write(_ss.str());
+            }
+            if (_ll == LogLevel::FATAL)
+            {
+                exit(1);
             }
         }
 
