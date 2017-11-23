@@ -21,58 +21,63 @@ namespace cmcray
         const char DEF_CONFIG[] = "defconfig.json";
         const char* argv0;
 
-        template<typename T> T fromValue(const rapidjson::Value& value, const T& defaultValue)
+        template<typename T> T fromValue(const rapidjson::Document& doc, const char* key, const T& defaultValue)
         {
-            if (value.IsNull()) return defaultValue;
-            else return value.Get<T>();
+            auto valit = doc.FindMember(key);
+            if (valit != doc.MemberEnd()) return valit->value.Get<T>();
+            else return defaultValue;
         }
 
         template<>
-        glm::vec2 fromValue(const rapidjson::Value& value, const glm::vec2& defaultValue)
+        glm::vec2 fromValue(const rapidjson::Document& doc, const char* key, const glm::vec2& defaultValue)
         {
-            if (value.IsArray())
+            auto valit = doc.FindMember(key);
+            if (valit != doc.MemberEnd())
             {
                 glm::vec2 retval;
-                retval.x = value[0].GetFloat();
-                retval.y = value[1].GetFloat();
+                retval.x = valit->value[0].GetFloat();
+                retval.y = valit->value[1].GetFloat();
                 return retval;
             }
             else return defaultValue;
         }
 
         template<>
-        std::string fromValue(const rapidjson::Value& value, const std::string& defaultValue)
+        std::string fromValue(const rapidjson::Document& doc, const char* key, const std::string& defaultValue)
         {
-            if (value.IsString())
+            auto valit = doc.FindMember(key);
+            if (valit != doc.MemberEnd())
             {
-                return std::string(value.GetString());
+                return std::string(valit->value.GetString());
             }
             else return defaultValue;
         }
 
         template<>
-        glm::vec3 fromValue(const rapidjson::Value& value, const glm::vec3& defaultValue)
+        glm::vec3 fromValue(const rapidjson::Document& doc, const char* key, const glm::vec3& defaultValue)
         {
-            if (value.IsArray())
+            auto valit = doc.FindMember(key);
+            if (valit != doc.MemberEnd())
             {
                 glm::vec3 retval{};
-                retval.x = value[0].GetFloat();
-                retval.y = value[1].GetFloat();
-                retval.z = value[2].GetFloat();
+                retval.x = valit->value[0].GetFloat();
+                retval.y = valit->value[1].GetFloat();
+                retval.z = valit->value[2].GetFloat();
                 return retval;
             }
             else return defaultValue;
         }
 
         template<>
-        glm::mat4 fromValue(const rapidjson::Value& value, const glm::mat4& defaultValue)
+        glm::mat4 fromValue(const rapidjson::Document& doc, const char* key, const glm::mat4& defaultValue)
         {
-            if(value.IsArray())
+            auto valit = doc.FindMember(key);
+            if(valit != doc.MemberEnd())
             {
                 glm::mat4 retval{};
                 for(int i = 0; i < 16; ++i)
                 {
-                    retval[i / 4][i % 4] = value[i].GetFloat();
+                    retval[i / 4][i % 4] = valit->value[i].GetFloat();
                 }
                 return retval;
             }
@@ -171,7 +176,7 @@ namespace cmcray
                 return;
             }
 
-#define OPT(type, name, defValue) name = fromValue(d[#name], name);
+#define OPT(type, name, defValue) name = fromValue(d, #name, name);
 #include "Config.inl"
 
 #undef OPT
@@ -207,6 +212,9 @@ namespace cmcray
             cam.fov = cameraFov;
             cam.near = cameraNear;
             cam.far = cameraFar;
+            cam.position = cameraPos;
+            cam.rotation = cameraRotation;
+            cam.targetSize = glm::vec2{screenX, screenY};
         }
 
     }

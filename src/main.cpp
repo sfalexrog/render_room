@@ -116,16 +116,6 @@ int main(int argc, char** argv)
     }
 
     auto &cam = cmcray::getDefaultCamera();
-    cam.fov = glm::pi<float>() / 2.0f;
-    cam.position.x = -10000;
-    cam.position.y = 1500;
-    cam.position.z = 5000;
-
-    cam.targetSize = glm::vec2{1600.0f, 800.0f};
-
-    cam.near = 100.0f;
-    cam.far = 100000.0f;
-
     cmcray::Renderer::init();
 
     Log(INFO) << "Adding room to scene";
