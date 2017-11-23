@@ -31,3 +31,5 @@ OPT(glm::vec2, cameraRotation, glm::vec2{0.0f})
 OPT(float, cameraNear, 100.0f)
 // Far plane distance
 OPT(float, cameraFar, 10000.0f)
+// Light intensity (pre-scale-factor)
+OPT(float, lightIntensity, 50.0f)

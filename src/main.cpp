@@ -73,7 +73,7 @@ int main(int argc, char** argv)
     Log(DEBUG) << "Total invocations: " << maxComputeInvocations << std::endl;
 
     auto load_start = SDL_GetTicks();
-    auto room = cmcray::Loader::loadObj("cmc_rooms/room01.obj");
+    auto room = cmcray::Loader::loadObj(cmcray::Config::sourceFile);
     Log(INFO) << "Loading room took " << (SDL_GetTicks() - load_start) << " ms";
 
     cmcray::InteractiveLog::setMinVerbosity(cmcray::Logger::LogLevel::VERBOSE);
@@ -183,7 +183,7 @@ int main(int argc, char** argv)
 
         ImGui::Begin("Ray Marching Controls");
         {
-            ImGui::Text("Hello from ImGui!");
+            ImGui::Text("Frame time: %d (%f fps)", frame_time, 1000.0f/frame_time);
         }
         ImGui::End();
 

@@ -5,6 +5,7 @@
 
 #include "format/mesh.h"
 #include "util/Logger.h"
+#include "util/Config.h"
 
 namespace cmcray
 {
@@ -67,7 +68,12 @@ namespace cmcray
 
         void render(Shader& shader, const Camera& camera)
         {
+            // Re-enable for debugging purposes
+#if 0
 #define CHECK {gl::GLenum error; if ((error = gl::glGetError()) != gl::GL_NO_ERROR) Log(ERROR) << __FILE__ << ":" << __LINE__ << ": GL error: " << error;}
+#else
+#define CHECK
+#endif
             auto view_projection = VPFromCamera(camera);
             auto view_mtx = view_projection.first;
             auto projection_mtx = view_projection.second;
@@ -81,11 +87,12 @@ namespace cmcray
             for(const auto& obj : state.sceneObjects)
             {
                 auto mvp = projection_mtx * view_mtx * obj.transform;
+                float lightIntensity = Config::lightIntensity * Config::scaleFactor * Config::scaleFactor;
                 shader.bind(0, obj.transform); CHECK;
                       shader.bind(1, view_mtx); CHECK;
                       shader.bind(2, mvp); CHECK;
                       shader.bind(3, glm::vec3{1.0f, 1.0f, 1.0f}); CHECK;
-                      shader.bind(4, 100.0f); CHECK;
+                      shader.bind(4, lightIntensity); CHECK;
                       shader.bind(5, view_mtx * obj.transform); CHECK;
                 shader.bind(6, camera.position); CHECK;
 
