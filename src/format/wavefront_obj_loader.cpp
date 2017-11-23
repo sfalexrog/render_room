@@ -6,6 +6,8 @@
 #include <glm/glm.hpp>
 
 #include "wavefront_obj_loader.h"
+#include "util/Logger.h"
+#include "util/Config.h"
 
 namespace cmcray
 {
@@ -14,6 +16,10 @@ namespace cmcray
         Mesh loadObj(const std::string& fileName)
         {
             std::ifstream input(fileName);
+            if (!input)
+            {
+                Log(FATAL) << "Could not open mesh: " << fileName;
+            }
             Mesh output;
             std::string line;
             while(input)
@@ -33,8 +39,16 @@ namespace cmcray
                         x /= w;
                         y /= w;
                         z /= w;
+                        w = 1;
                     }
-                    output.v.push_back(Mesh::Vertex{glm::vec3{x, y, z}, glm::vec3{}});
+                    glm::vec4 parsedVec{x, y, z, w};
+                    parsedVec = Config::sourceTransform * parsedVec;
+                    glm::vec3 finalVec{
+                            parsedVec.x / parsedVec.w,
+                            parsedVec.y / parsedVec.w,
+                            parsedVec.z / parsedVec.w
+                    };
+                    output.v.push_back(Mesh::Vertex{finalVec, glm::vec3{}});
                 }
                 else if (recordType == "f")
                 {
@@ -63,6 +77,9 @@ namespace cmcray
                 output.v[i2].norm = n;
                 output.v[i3].norm = n;
             }
+            Log(DEBUG) << "Loaded " << fileName << ": "
+                      << output.v.size() << " vertices, "
+                      << output.indices.size() / 3 << " triangles";
             return output;
         }
     }
