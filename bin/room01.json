@@ -1,0 +1,16 @@
+{
+    "sourceFile": "cmc_rooms/room01.obj",
+    "sourceTransform": [1.0, 0.0, 0.0, 0.0,
+                        0.0, 1.0, 0.0, 0.0,
+                        0.0, 0.0, 1.0, 0.0,
+                        0.0, 0.0, 0.0, 1.0
+    ],
+    "scaleFactor": 1000.0,
+    "cameraPos": [
+        -10000.0,
+        1500.0,
+        1500.0
+    ],
+    "cameraNear": 100.0,
+    "cameraFar": 30000.0
+}
