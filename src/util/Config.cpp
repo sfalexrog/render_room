@@ -77,7 +77,7 @@ namespace cmcray
                 glm::mat4 retval{};
                 for(int i = 0; i < 16; ++i)
                 {
-                    retval[i / 4][i % 4] = valit->value[i].GetFloat();
+                    retval[i % 4][i / 4] = valit->value[i].GetFloat();
                 }
                 return retval;
             }
@@ -128,7 +128,7 @@ namespace cmcray
             rapidjson::Value v(rapidjson::kArrayType);
             for(int i = 0; i < 16; ++i)
             {
-                v.PushBack(val[i / 4][i % 4], d.GetAllocator());
+                v.PushBack(val[i % 4][i / 4], d.GetAllocator());
             }
             return v;
         }
