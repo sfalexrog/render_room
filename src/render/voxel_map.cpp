@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <sstream>
+#include <cmath>
 
 // FIXME: Maybe not a good file to include the IMAGE_IMPLEMENTATION in?
 #define STB_IMAGE_IMPLEMENTATION
@@ -40,22 +41,23 @@ namespace cmcray
     void VoxelMap::dumpImages(const char* prefix)
     {
         std::vector<float> texData(_sizeX * _sizeY * _sizeZ);
+        std::vector<uint8_t> sliceData(_sizeX * _sizeZ * 3);
         getData(texData.data(), texData.size() * sizeof(float));
-        for (int i = 0; i < _sizeZ; ++i)
+        for (int y = 0; y < _sizeY; ++y)
         {
             std::stringstream ss;
-            ss << prefix << "_" << i << ".png";
-            std::vector<uint8_t> sliceData(_sizeX * _sizeY * 3);
+            ss << prefix << "_" << y << ".png";
+
             for(int x = 0; x < _sizeX; ++x)
             {
-                for(int y = 0; y < _sizeY; ++y)
+                for(int z = 0; z < _sizeZ; ++z)
                 {
-                    sliceData[3 * (x + _sizeX * y)    ] = uint8_t(255.0f * (texData[x + _sizeX * i + _sizeX * _sizeY * y] / 100.0f));
-                    sliceData[3 * (x + _sizeX * y) + 1] = uint8_t(255.0f * (texData[x + _sizeX * i + _sizeX * _sizeY * y] / 100.0f));
-                    sliceData[3 * (x + _sizeX * y) + 2] = uint8_t(255.0f * (texData[x + _sizeX * i + _sizeX * _sizeY * y] / 100.0f));
+                    sliceData[3 * (x + _sizeX * z)    ] = floor(255.0f * (texData[x + _sizeX * y + _sizeX * _sizeY * z] / 100.0f));
+                    sliceData[3 * (x + _sizeX * z) + 1] = floor(255.0f * (texData[x + _sizeX * y + _sizeX * _sizeY * z] / 100.0f));
+                    sliceData[3 * (x + _sizeX * z) + 2] = floor(255.0f * (texData[x + _sizeX * y + _sizeX * _sizeY * z] / 100.0f));
                 }
             }
-            stbi_write_png(ss.str().c_str(), _sizeX, _sizeY, 3, sliceData.data(), _sizeX * 3);
+            stbi_write_png(ss.str().c_str(), _sizeX, _sizeZ, 3, sliceData.data(), _sizeX * 3);
         }
     }
 }
