@@ -27,6 +27,9 @@ namespace cmcray
 
         void getData(void* data, size_t dataSz);
 
+        // Will dump all images (SLOWLY)
+        void dumpImages(const char* prefix);
+
     };
 }
 

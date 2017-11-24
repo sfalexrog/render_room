@@ -1,0 +1,159 @@
+#version 430
+
+#define SIZE_X 32
+#define SIZE_Y 32
+
+#define PI 3.1415926535897932384626433832795
+
+layout(local_size_x = SIZE_X, local_size_y = SIZE_Y) in;
+layout(r32i, binding = 0) uniform iimage3D img_output;
+layout(location = 1) uniform vec3 minBound;
+layout(location = 2) uniform vec3 maxBound;
+
+layout(location = 3) uniform float scaleFactor;
+layout(location = 4) uniform vec3 startingPosition;
+layout(location = 5) uniform float angleShift;
+
+struct Triangle
+{
+    vec4 a;
+    vec4 b;
+    vec4 c;
+};
+
+layout (std430, binding = 1) buffer Triangles
+{
+    Triangle triangles[];
+};
+
+const float startPower = 100;
+const float cutoffPower = 0;
+
+struct Ray
+{
+    vec3 origin;
+    vec3 direction;
+};
+
+// Minimum-Storage Triangle Intersection
+// http://webserver2.tecgraf.puc-rio.br/~mgattass/cg/trbRR/Fast%20MinimumStorage%20RayTriangle%20Intersection.pdf
+// intersection.x stores t-value (the distance from the ray's origin), intersection.y and intersection.z store u and v
+// values on the triangle respectively
+// Return value: true if intersects, false otherwise
+const float eps = 0.0000001;
+bool intersect(Ray ray, Triangle triangle, out vec3 intersection)
+{
+    vec3 e1 = vec4(triangle.b - triangle.a).xyz;
+    vec3 e2 = vec4(triangle.c - triangle.a).xyz;
+    vec3 pvec = cross(ray.direction, e2);
+    float det = dot(e1, pvec);
+    if (abs(det) < eps)
+    {
+        return false;
+    }
+    float inv_det = 1.0 / det;
+    vec3 tvec = ray.origin - triangle.a.xyz;
+    intersection.y = dot(tvec, pvec) / det;
+    if (intersection.y < 0.0 || intersection.y > 1.0)
+    {
+        return false;
+    }
+    vec3 qvec = cross(tvec, e1);
+    intersection.z = dot(ray.direction, qvec) / det;
+    if (intersection.z < 0.0 || intersection.y + intersection.z > 1.0)
+    {
+        return false;
+    }
+    intersection.x = dot(e2, qvec) / det;
+    return true;
+}
+
+
+// Calculate attenuated power, accounting for the scaling
+// Also, ensure no log(0) happens ever.
+// Return a value in db, 0 to 100.
+float powerDb(float distance)
+{
+    return clamp(100.0 - 2.0 * log2(1.0 + distance / scaleFactor) / log2(10), 0.0, 100.0);
+
+}
+
+vec3 voxelSize()
+{
+    return (maxBound - minBound) / imageSize(img_output);
+}
+
+ivec3 imgLoc(vec3 spaceLoc)
+{
+    return ivec3(imageSize(img_output) * floor(spaceLoc) / floor(maxBound - minBound));
+}
+
+const int REFLECTION_COUNT = 7;
+
+void main()
+{
+    vec3 vs = voxelSize();
+
+    Ray ray;
+    ray.origin = startingPosition;
+    ray.direction = vec3(cos(2 * PI * gl_LocalInvocationID.x / SIZE_X + angleShift),
+                        cos(PI * (2 * gl_LocalInvocationID.y - SIZE_Y) / SIZE_Y),
+                        -sin(2 * PI * gl_LocalInvocationID.x / SIZE_X + angleShift));
+    // Note: due to me being lazy, the direction vector is not actually unit, so we have to normalize it
+    ray.direction = normalize(ray.direction);
+    vec3 currentPosition = ray.origin;
+
+    // Distance that the ray has been going
+    float distanceTravelledTotal = 0;
+    float currentPower = powerDb(distanceTravelledTotal);
+
+    // Get the increment for current ray position (not very exact, but should work nevertheless)
+    vec3 vsz = voxelSize();
+    float increment = min(min(vsz.x, vsz.y), vsz.z);
+
+    // Compute ray bounces
+    for(int bounce = 0; bounce < REFLECTION_COUNT; ++bounce)
+    {
+        // Distance travelled on this ray
+        float distanceTravelled = 0;
+        // First, get the triangle we're intersecting
+        float intersectionDistance = 10000000.0;
+        vec3 triangleNormal;
+        for(int triNum = 0; triNum < triangles.length(); ++triNum)
+        {
+            vec3 intersection;
+            if (intersect(ray, triangles[triNum], intersection))
+            {
+                if (intersection.x > 0)
+                {
+                    intersectionDistance = min(intersection.x, intersectionDistance);
+                    triangleNormal = cross(triangles[triNum].b.xyz - triangles[triNum].a.xyz, triangles[triNum].c.xyz - triangles[triNum].a.xyz);
+                }
+            }
+        }
+        // No intersection - we are probably out of bounds
+        if (intersectionDistance == 10000000.0)
+        {
+            return;
+        }
+        triangleNormal = normalize(triangleNormal);
+        // Now, trace the ray, setting power along the way
+
+        while(intersectionDistance - distanceTravelled > 0)
+        {
+            distanceTravelled += increment;
+            currentPosition += ray.direction * increment;
+            currentPower = powerDb(distanceTravelledTotal + distanceTravelled);
+            imageAtomicMax(img_output, imgLoc(currentPosition), floatBitsToInt(currentPower));
+        }
+        // No power left to dissipate - end the tracing
+        if (currentPower == 0.0)
+        {
+            return;
+        }
+
+        // Recalculate new ray position
+        ray.origin = ray.origin + ray.direction * intersectionDistance;
+        ray.direction = ray.direction - 2 * dot(ray.direction, triangleNormal) * triangleNormal;
+    }
+}

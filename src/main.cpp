@@ -24,6 +24,9 @@
 #include "render/shader.h"
 #include "render/render.h"
 
+#include "render/voxel_map.h"
+#include "render/compute.h"
+
 #include "util/Config.h"
 
 int main(int argc, char** argv)
@@ -117,9 +120,31 @@ int main(int argc, char** argv)
 
     auto &cam = cmcray::getDefaultCamera();
     cmcray::Renderer::init();
+    cmcray::Compute::init();
 
     Log(INFO) << "Adding room to scene";
     cmcray::Renderer::addToScene(room);
+
+    Log(INFO) << "Adding room to compute";
+    cmcray::Compute::addToCompute(room);
+
+
+    Log(INFO) << "Creating storage for compute results";
+
+    auto voxmap = cmcray::VoxelMap(128, 128, 128);
+
+    Log(INFO) << "Dispatching compute";
+
+    auto compute_start = SDL_GetTicks();
+    cmcray::Compute::compute(computeShader, voxmap);
+
+    Log(INFO) << "Compute took " << SDL_GetTicks() - compute_start << " ms";
+
+    Log(INFO) << "Dumping images";
+
+    auto dump_start = SDL_GetTicks();
+    voxmap.dumpImages("img/dump");
+    Log(INFO) << "Dumping took " << SDL_GetTicks() - dump_start << " ms";
 
     bool done = false;
     auto start_time = SDL_GetTicks();
