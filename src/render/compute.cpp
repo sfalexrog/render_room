@@ -18,6 +18,9 @@ namespace cmcray
     namespace
     {
         // BE SURE THIS IS SYNCED WITH YOUR COMPUTE SHADER
+        const int raysPerInvocation = 32;
+        const int numRotations = 16;
+
         struct Triangle
         {
             vec4 a;
@@ -76,7 +79,7 @@ namespace cmcray
         void compute(Shader& shader, VoxelMap& result)
         {
 
-#if 1
+#if 0
 #define CHECK {gl::GLenum error; if ((error = gl::glGetError()) != gl::GL_NO_ERROR) Log(ERROR) << __FILE__ << ":" << __LINE__ << ": GL error: " << error;}
 #else
 #define CHECK
@@ -90,14 +93,14 @@ namespace cmcray
             gl::glUniform1f(3, Config::scaleFactor); CHECK;
 
             gl::glUniform3fv(4, 1, glm::value_ptr(Config::cameraPos)); CHECK;
-            for(int i = 0; i < 4; ++i)
+            for(int i = 0; i < numRotations; ++i)
             {
-                gl::glUniform1f(5, pi<float>() / (32 * 4));
-                gl::glDispatchCompute(32, 32, 1); CHECK;
+                gl::glUniform1f(5, 2 * i * pi<float>() / (raysPerInvocation * numRotations));
+                gl::glDispatchCompute(1, 1, 1); CHECK;
             }
-            //gl::glMemoryBarrier(gl::GL_SHADER_IMAGE_ACCESS_BARRIER_BIT); CHECK;
-            gl::glFlush();
-            gl::glFinish();
+            gl::glMemoryBarrier(gl::GL_SHADER_IMAGE_ACCESS_BARRIER_BIT); CHECK;
+            //gl::glFlush();
+            //gl::glFinish();
         }
 
     }
