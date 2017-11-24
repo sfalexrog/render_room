@@ -7,9 +7,9 @@
     ],
     "scaleFactor": 1000.0,
     "cameraPos": [
-        10000.0,
+        12500.0,
         1500.0,
-        1500.0
+        5500.0
     ],
     "cameraNear": 100.0,
     "cameraFar": 30000.0,
