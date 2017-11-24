@@ -32,7 +32,7 @@ namespace cmcray
             auto bounds = getBounds(mesh);
 
             const float size_x = 800.0f;
-            const float size_y = 600.0f;
+            const float size_y = 620.0f;
 
             const float mx = (size_x - 40) / (bounds[1].x - bounds[0].x);
             const float my = (size_y - 40) / (bounds[1].y - bounds[0].y);
@@ -44,6 +44,8 @@ namespace cmcray
 
             ImGui::SetNextWindowSize(ImVec2(size_x, size_y), ImGuiCond_Always);
             ImGui::Begin("Room Mesh", nullptr, ImGuiWindowFlags_NoResize);
+
+            ImGui::Text("X: %7.3f, Y: %7.3f, Z: %7.3f", camera.position.x, camera.position.y, camera.position.z);
 
             auto drawList = ImGui::GetWindowDrawList();
             auto p = ImGui::GetCursorScreenPos();
