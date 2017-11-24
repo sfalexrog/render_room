@@ -40,7 +40,7 @@ struct Ray
 // intersection.x stores t-value (the distance from the ray's origin), intersection.y and intersection.z store u and v
 // values on the triangle respectively
 // Return value: true if intersects, false otherwise
-const float eps = 0.0000001;
+const float eps = 0.00001;
 bool intersect(Ray ray, Triangle triangle, out vec3 intersection)
 {
     vec3 e1 = vec4(triangle.b - triangle.a).xyz;
@@ -68,13 +68,14 @@ bool intersect(Ray ray, Triangle triangle, out vec3 intersection)
     return true;
 }
 
+float remainingPower = 100.0;
 
 // Calculate attenuated power, accounting for the scaling
 // Also, ensure no log(0) happens ever.
 // Return a value in db, 0 to 100.
 float powerDb(float distance)
 {
-    return clamp(100.0 - 2.0 * (log2(1.0 + (distance / scaleFactor)) / log2(10)), 0.000001, 100.0);
+    return clamp(remainingPower - 2.0 * (log2(1.0 + (distance /scaleFactor)) / log2(10.0)), 0.0, 100.0);
 }
 
 vec3 voxelSize()
@@ -87,7 +88,7 @@ ivec3 imgLoc(vec3 spaceLoc)
     return ivec3(imageSize(img_output) * floor(spaceLoc) / floor(maxBound - minBound));
 }
 
-const int REFLECTION_COUNT = 7;
+//const int REFLECTION_COUNT = 15;
 
 void main()
 {
@@ -111,22 +112,26 @@ void main()
     float increment = min(min(vsz.x, vsz.y), vsz.z);
 
     // Compute ray bounces
-    for(int bounce = 0; bounce < REFLECTION_COUNT; ++bounce)
+    //for(int bounce = 0; bounce < REFLECTION_COUNT; ++bounce)
+    while (currentPower > eps)
     {
         // Distance travelled on this ray
         float distanceTravelled = 0;
         // First, get the triangle we're intersecting
         float intersectionDistance = 10000000.0;
         vec3 triangleNormal;
+        //vec3 nextOrigin;
         for(int triNum = 0; triNum < triangles.length(); ++triNum)
         {
             vec3 intersection;
             if (intersect(ray, triangles[triNum], intersection))
             {
-                if (intersection.x > 0)
+                if (intersection.x > eps)
                 {
                     intersectionDistance = min(intersection.x, intersectionDistance);
                     triangleNormal = cross(triangles[triNum].b.xyz - triangles[triNum].a.xyz, triangles[triNum].c.xyz - triangles[triNum].a.xyz);
+                    //vec2 uv = intersection.yz;
+                    //nextOrigin = (1 - uv.x - uv.y) * triangles[triNum].a.xyz + uv.x * triangles[triNum].b.xyz + uv.y * triangles[triNum].c.xyz;
                 }
             }
         }
@@ -153,7 +158,17 @@ void main()
         }
 
         // Recalculate new ray position
-        ray.origin = ray.origin + ray.direction * intersectionDistance;
-        ray.direction = ray.direction - 2 * dot(ray.direction, triangleNormal) * triangleNormal;
+        float dd = max(distanceTravelled - increment, 0.0);
+        //float dd = max(intersectionDistance, 0.0);
+        // If we didn't travel at all, well, we're stuck.
+        if (dd == 0.0)
+        {
+            return;
+        }
+        ray.origin = ray.origin + ray.direction * dd;
+        //ray.origin = nextOrigin;
+        ray.direction = normalize(ray.direction - 2 * dot(ray.direction, triangleNormal) * triangleNormal);
+        // Attenuate power on each hit
+        remainingPower -= 10.0;
     }
 }
