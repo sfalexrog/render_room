@@ -50,9 +50,9 @@ namespace cmcray
             {
                 for(int y = 0; y < _sizeY; ++y)
                 {
-                    sliceData[3 * (x + _sizeX * y)] = uint8_t(255 * (100 / texData[x + _sizeX * y + _sizeX * _sizeY * i]));
-                    sliceData[3 * (x + _sizeX * y) + 1] = uint8_t(255 * (100 / texData[x + _sizeX * y + _sizeX * _sizeY * i]));
-                    sliceData[3 * (x + _sizeX * y) + 2] = uint8_t(255 * (100 / texData[x + _sizeX * y + _sizeX * _sizeY * i]));
+                    sliceData[3 * (x + _sizeX * y)    ] = uint8_t(255.0f * (texData[x + _sizeX * i + _sizeX * _sizeY * y] / 100.0f));
+                    sliceData[3 * (x + _sizeX * y) + 1] = uint8_t(255.0f * (texData[x + _sizeX * i + _sizeX * _sizeY * y] / 100.0f));
+                    sliceData[3 * (x + _sizeX * y) + 2] = uint8_t(255.0f * (texData[x + _sizeX * i + _sizeX * _sizeY * y] / 100.0f));
                 }
             }
             stbi_write_png(ss.str().c_str(), _sizeX, _sizeY, 3, sliceData.data(), _sizeX * 3);
