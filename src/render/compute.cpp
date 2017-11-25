@@ -17,10 +17,6 @@ namespace cmcray
 
     namespace
     {
-        // BE SURE THIS IS SYNCED WITH YOUR COMPUTE SHADER
-        const int raysPerInvocation = 32;
-        const int numRotations = 1024;
-
         struct Triangle
         {
             vec4 a;
@@ -32,7 +28,6 @@ namespace cmcray
 
         struct
         {
-            gl::GLuint vao;
             gl::GLuint ssbo;
             vec3 minBound;
             vec3 maxBound;
@@ -49,8 +44,6 @@ namespace cmcray
         {
             CompState.minBound = glm::vec3{100000.0f, 100000.0f, 100000.0f};
             CompState.maxBound = glm::vec3{-100000.0f, -100000.0f, -100000.0f};
-            gl::glGenVertexArrays(1, &CompState.vao);
-            gl::glBindVertexArray(CompState.vao);
             gl::glGenBuffers(1, &CompState.ssbo);
             gl::glBindBuffer(gl::GL_SHADER_STORAGE_BUFFER, CompState.ssbo);
             gl::glGenQueries(1, &CompState.timerQuery);
@@ -73,7 +66,7 @@ namespace cmcray
                 CompState.maxBound.z = std::max({t.a.z, t.b.z, t.c.z, CompState.maxBound.z});
                 triangles.push_back(t);
             }
-            gl::glBindVertexArray(CompState.vao);
+            //gl::glBindVertexArray(CompState.vao);
             gl::glBindBuffer(gl::GL_SHADER_STORAGE_BUFFER, CompState.ssbo);
             gl::glBufferData(gl::GL_SHADER_STORAGE_BUFFER, sizeof(Triangle) * triangles.size(), triangles.data(), gl::GL_STATIC_DRAW);
             gl::glBindBufferBase(gl::GL_SHADER_STORAGE_BUFFER, 1, CompState.ssbo);
@@ -88,7 +81,6 @@ namespace cmcray
 #else
 #define CHECK
 #endif
-            gl::glBindVertexArray(CompState.vao);
             shader.activate(); CHECK;
             gl::glBindImageTexture(0, result.hndl(), 0, gl::GL_TRUE, 0, gl::GL_READ_WRITE, gl::GL_R32I); CHECK;
             gl::glUniform1i(0, 0); CHECK;
@@ -99,17 +91,9 @@ namespace cmcray
 
             gl::glUniform3fv(4, 1, glm::value_ptr(Config::cameraPos)); CHECK;
             gl::glBeginQuery(gl::GL_TIME_ELAPSED, CompState.timerQuery);
-            //for(int i = 0; i < numRotations; ++i)
-            //{
-            //    gl::glUniform1f(5, 2 * i * pi<float>() / (raysPerInvocation * numRotations));
-                gl::glDispatchCompute(1, 1, 1); CHECK;
-            //}
-            gl::glDispatchCompute(64, 16, 1);
+            gl::glDispatchCompute(64, 1, 1);
             gl::glEndQuery(gl::GL_TIME_ELAPSED);
             CompState.didStartCompute = true;
-            //gl::glMemoryBarrier(gl::GL_SHADER_IMAGE_ACCESS_BARRIER_BIT); CHECK;
-            //gl::glFlush();
-            //gl::glFinish();
         }
 
         bool finished()
