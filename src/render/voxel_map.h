@@ -6,6 +6,7 @@
 #define CMC_RAYMARCH_VOXEL_MAP_H
 
 #include <glbinding/gl43core/gl.h>
+#include <glm/vec3.hpp>
 
 namespace cmcray
 {
@@ -16,6 +17,7 @@ namespace cmcray
         gl::GLuint _texHandle;
 
     public:
+        VoxelMap(glm::ivec3 dims) : VoxelMap(dims.x, dims.y, dims.z) {}
         VoxelMap(int x, int y, int z);
         ~VoxelMap();
 

@@ -84,6 +84,22 @@ namespace cmcray
             else return defaultValue;
         }
 
+        template<>
+        glm::ivec3 fromValue(const rapidjson::Document& doc, const char* key, const glm::ivec3& defaultValue)
+        {
+            auto valit = doc.FindMember(key);
+            if (valit != doc.MemberEnd())
+            {
+                glm::ivec3 retval{};
+                for(int i = 0; i < 3; ++i)
+                {
+                    retval[i] = valit->value[i].GetInt();
+                }
+                return retval;
+            }
+            return defaultValue;
+        }
+
         template<typename T>
         rapidjson::Value toValue(const T& val, rapidjson::Document& d)
         {
@@ -129,6 +145,17 @@ namespace cmcray
             for(int i = 0; i < 16; ++i)
             {
                 v.PushBack(val[i % 4][i / 4], d.GetAllocator());
+            }
+            return v;
+        }
+
+        template<>
+        rapidjson::Value toValue(const glm::ivec3& val, rapidjson::Document &d)
+        {
+            rapidjson::Value v(rapidjson::kArrayType);
+            for(int i = 0; i < 3; ++i)
+            {
+                v.PushBack(val[i], d.GetAllocator());
             }
             return v;
         }

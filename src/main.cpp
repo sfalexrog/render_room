@@ -131,24 +131,19 @@ int main(int argc, char** argv)
 
     Log(INFO) << "Creating storage for compute results";
 
-    auto voxmap = cmcray::VoxelMap(128, 128, 128);
+    auto voxmap = cmcray::VoxelMap(cmcray::Config::voxelMapDimensions);
 
     Log(INFO) << "Dispatching compute";
 
-    auto compute_start = SDL_GetTicks();
     cmcray::Compute::compute(computeShader, voxmap);
-
-    Log(INFO) << "Compute took " << SDL_GetTicks() - compute_start << " ms";
-
-    Log(INFO) << "Dumping images";
-
-    auto dump_start = SDL_GetTicks();
-    voxmap.dumpImages("img/dump");
-    Log(INFO) << "Dumping took " << SDL_GetTicks() - dump_start << " ms";
 
     bool done = false;
     auto start_time = SDL_GetTicks();
     float shift = 0, rot = 0;
+
+    bool didDumpImages = false;
+    bool spacePressed = false;
+
     while (!done)
     {
         SDL_Event e;
@@ -195,6 +190,16 @@ int main(int argc, char** argv)
                     }
                     break;
             }
+        }
+
+        if (cmcray::Compute::finished() && !didDumpImages)
+        {
+            Log(INFO) << "Dumping images";
+
+            auto dump_start = SDL_GetTicks();
+            voxmap.dumpImages("img/dump");
+            Log(INFO) << "Dumping took " << SDL_GetTicks() - dump_start << " ms";
+            didDumpImages = true;
         }
 
         auto frame_time = SDL_GetTicks() - start_time;

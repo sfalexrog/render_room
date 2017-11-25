@@ -33,3 +33,5 @@ OPT(float, cameraNear, 100.0f)
 OPT(float, cameraFar, 10000.0f)
 // Light intensity (pre-scale-factor)
 OPT(float, lightIntensity, 50.0f)
+// Voxel map dimensions
+OPT(glm::ivec3, voxelMapDimensions, (glm::ivec3{128, 128, 128}))
