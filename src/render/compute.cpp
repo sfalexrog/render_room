@@ -19,7 +19,7 @@ namespace cmcray
     {
         // BE SURE THIS IS SYNCED WITH YOUR COMPUTE SHADER
         const int raysPerInvocation = 32;
-        const int numRotations = 16;
+        const int numRotations = 1024;
 
         struct Triangle
         {
@@ -36,6 +36,8 @@ namespace cmcray
             gl::GLuint ssbo;
             vec3 minBound;
             vec3 maxBound;
+            gl::GLuint timerQuery;
+            bool didStartCompute;
         } CompState;
 
     }
@@ -51,6 +53,8 @@ namespace cmcray
             gl::glBindVertexArray(CompState.vao);
             gl::glGenBuffers(1, &CompState.ssbo);
             gl::glBindBuffer(gl::GL_SHADER_STORAGE_BUFFER, CompState.ssbo);
+            gl::glGenQueries(1, &CompState.timerQuery);
+            CompState.didStartCompute = false;
         }
 
         void addToCompute(const Mesh& mesh)
@@ -92,16 +96,45 @@ namespace cmcray
             gl::glUniform3fv(2, 1, value_ptr(CompState.maxBound)); CHECK;
             gl::glUniform1f(3, Config::scaleFactor); CHECK;
 
+
             gl::glUniform3fv(4, 1, glm::value_ptr(Config::cameraPos)); CHECK;
-            for(int i = 0; i < numRotations; ++i)
-            {
-                gl::glUniform1f(5, 2 * i * pi<float>() / (raysPerInvocation * numRotations));
+            gl::glBeginQuery(gl::GL_TIME_ELAPSED, CompState.timerQuery);
+            //for(int i = 0; i < numRotations; ++i)
+            //{
+            //    gl::glUniform1f(5, 2 * i * pi<float>() / (raysPerInvocation * numRotations));
                 gl::glDispatchCompute(1, 1, 1); CHECK;
-            }
-            gl::glMemoryBarrier(gl::GL_SHADER_IMAGE_ACCESS_BARRIER_BIT); CHECK;
+            //}
+            gl::glDispatchCompute(64, 16, 1);
+            gl::glEndQuery(gl::GL_TIME_ELAPSED);
+            CompState.didStartCompute = true;
+            //gl::glMemoryBarrier(gl::GL_SHADER_IMAGE_ACCESS_BARRIER_BIT); CHECK;
             //gl::glFlush();
             //gl::glFinish();
         }
+
+        bool finished()
+        {
+            if (!CompState.didStartCompute)
+            {
+                return true;
+            }
+            gl::GLboolean queryFinished;
+            gl::glGetQueryObjectiv(CompState.timerQuery, gl::GL_QUERY_RESULT_AVAILABLE, &queryFinished);
+            if (queryFinished == gl::GL_TRUE)
+            {
+                CompState.didStartCompute = false;
+                gl::GLint64 timeElapsed;
+                gl::glGetQueryObjecti64v(CompState.timerQuery, gl::GL_QUERY_RESULT, &timeElapsed);
+                Log(DEBUG) << "Compute shaders took " << timeElapsed / 1000000.0 << " ms";
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+
 
     }
 

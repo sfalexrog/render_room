@@ -12,7 +12,8 @@ layout(location = 2) uniform vec3 maxBound;
 
 layout(location = 3) uniform float scaleFactor;
 layout(location = 4) uniform vec3 startingPosition;
-layout(location = 5) uniform float angleShift;
+
+vec2 angleShift = 2 * PI * gl_WorkGroupID.xy / (ivec2(SIZE_X, SIZE_Y) * gl_NumWorkGroups.xy);
 
 struct Triangle
 {
@@ -53,18 +54,18 @@ bool intersect(Ray ray, Triangle triangle, out vec3 intersection)
     }
     float inv_det = 1.0 / det;
     vec3 tvec = ray.origin - triangle.a.xyz;
-    intersection.y = dot(tvec, pvec) / det;
+    intersection.y = dot(tvec, pvec) * inv_det;
     if (intersection.y < 0.0 || intersection.y > 1.0)
     {
         return false;
     }
     vec3 qvec = cross(tvec, e1);
-    intersection.z = dot(ray.direction, qvec) / det;
+    intersection.z = dot(ray.direction, qvec) * inv_det;
     if (intersection.z < 0.0 || intersection.y + intersection.z > 1.0)
     {
         return false;
     }
-    intersection.x = dot(e2, qvec) / det;
+    intersection.x = dot(e2, qvec) * inv_det;
     return true;
 }
 
@@ -96,9 +97,9 @@ void main()
 
     Ray ray;
     ray.origin = startingPosition;
-    ray.direction = vec3(cos(2 * PI * gl_LocalInvocationID.x / SIZE_X + angleShift),
-                        cos(PI * (2 * gl_LocalInvocationID.y - SIZE_Y) / SIZE_Y),
-                        -sin(2 * PI * gl_LocalInvocationID.x / SIZE_X + angleShift));
+    ray.direction = vec3(cos(2 * PI * gl_LocalInvocationID.x / SIZE_X + angleShift.x),
+                        cos(PI * (2 * gl_LocalInvocationID.y - SIZE_Y) / SIZE_Y + angleShift.y),
+                        -sin(2 * PI * gl_LocalInvocationID.x / SIZE_X + angleShift.x));
     // Note: due to me being lazy, the direction vector is not actually unit, so we have to normalize it
     ray.direction = normalize(ray.direction);
     vec3 currentPosition = ray.origin;

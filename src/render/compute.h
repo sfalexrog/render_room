@@ -14,6 +14,7 @@ namespace cmcray
         void init();
         void addToCompute(const Mesh& mesh);
         void compute(Shader& shader, VoxelMap& result);
+        bool finished();
     }
 }
 
