@@ -203,6 +203,8 @@ int main(int argc, char** argv)
             didDumpImages = true;
         }
 #endif
+        cmcray::Compute::finished();
+
         auto frame_time = SDL_GetTicks() - start_time;
 
         glm::vec3 camDirection = glm::vec3{cos(cam.rotation.y), 0.0f, -sin(cam.rotation.y)};
