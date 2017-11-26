@@ -38,7 +38,7 @@ namespace cmcray
 
         void init()
         {
-            gl::glCreateVertexArrays(1, &state.vao);
+            gl::glGenVertexArrays(1, &state.vao);
         }
 
         void addToScene(const Mesh& object, const glm::mat4 transform)
@@ -46,8 +46,8 @@ namespace cmcray
             gl::glBindVertexArray(state.vao);
             gl::GLuint meshVbo;
             gl::GLuint meshIbo;
-            gl::glCreateBuffers(1, &meshVbo);
-            gl::glCreateBuffers(1, &meshIbo);
+            gl::glGenBuffers(1, &meshVbo);
+            gl::glGenBuffers(1, &meshIbo);
             gl::glBindBuffer(gl::GL_ARRAY_BUFFER, meshVbo);
             gl::glBufferData(gl::GL_ARRAY_BUFFER, sizeof(Mesh::Vertex) * object.v.size(), object.v.data(), gl::GL_STATIC_DRAW);
             gl::glBindBuffer(gl::GL_ELEMENT_ARRAY_BUFFER, meshIbo);
