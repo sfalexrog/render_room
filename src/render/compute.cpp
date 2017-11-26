@@ -91,7 +91,7 @@ namespace cmcray
 
             gl::glUniform3fv(4, 1, glm::value_ptr(Config::cameraPos)); CHECK;
             gl::glBeginQuery(gl::GL_TIME_ELAPSED, CompState.timerQuery);
-            gl::glDispatchCompute(64, 1, 1);
+            gl::glDispatchCompute(16 * result.sx() / 32, result.sy() / 32, 1);
             gl::glEndQuery(gl::GL_TIME_ELAPSED);
             CompState.didStartCompute = true;
         }
