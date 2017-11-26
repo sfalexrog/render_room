@@ -7,13 +7,14 @@
 
 #include "format/mesh.h"
 #include "render/camera.h"
+#include "render/voxel_map.h"
 
 namespace cmcray
 {
     namespace MapWindow
     {
         // Draw a top-down view of the mesh
-        void draw(const Mesh& mesh, const Camera& camera);
+        void draw(const Mesh& mesh, const Camera& camera, VoxelMap &voxMap);
     }
 }
 

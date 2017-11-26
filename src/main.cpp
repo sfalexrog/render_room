@@ -192,6 +192,7 @@ int main(int argc, char** argv)
             }
         }
 
+#if 0
         if (cmcray::Compute::finished() && !didDumpImages)
         {
             Log(INFO) << "Dumping images";
@@ -201,7 +202,7 @@ int main(int argc, char** argv)
             Log(INFO) << "Dumping took " << SDL_GetTicks() - dump_start << " ms";
             didDumpImages = true;
         }
-
+#endif
         auto frame_time = SDL_GetTicks() - start_time;
 
         glm::vec3 camDirection = glm::vec3{cos(cam.rotation.y), 0.0f, -sin(cam.rotation.y)};
@@ -217,8 +218,10 @@ int main(int argc, char** argv)
         }
         ImGui::End();
 
+        //cmcray::Compute::compute(computeShader, voxmap);
+
         cmcray::LogWindow::draw();
-        cmcray::MapWindow::draw(room, cam);
+        cmcray::MapWindow::draw(room, cam, voxmap);
 
         gl::glClearColor(0, 0, 0, 255);
         gl::glClear(gl::GL_COLOR_BUFFER_BIT | gl::GL_DEPTH_BUFFER_BIT);

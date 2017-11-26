@@ -19,6 +19,12 @@ namespace cmcray
         gl::glGenTextures(1, &_texHandle);
         gl::glBindTexture(gl::GL_TEXTURE_3D, _texHandle);
         gl::glTexStorage3D(gl::GL_TEXTURE_3D, 1, gl::GL_R32F, _sizeX, _sizeY, _sizeZ);
+        gl::glTexParameteri(gl::GL_TEXTURE_3D, gl::GL_TEXTURE_MIN_FILTER, gl::GL_LINEAR);
+        gl::glTexParameteri(gl::GL_TEXTURE_3D, gl::GL_TEXTURE_MAG_FILTER, gl::GL_LINEAR);
+        gl::glTexParameteri(gl::GL_TEXTURE_3D, gl::GL_TEXTURE_WRAP_S, gl::GL_CLAMP_TO_EDGE);
+        gl::glTexParameteri(gl::GL_TEXTURE_3D, gl::GL_TEXTURE_WRAP_R, gl::GL_CLAMP_TO_EDGE);
+        gl::glTexParameteri(gl::GL_TEXTURE_3D, gl::GL_TEXTURE_WRAP_T, gl::GL_CLAMP_TO_EDGE);
+
         std::vector<float> nullTexData(_sizeX * _sizeY * _sizeZ, 0.0f);
         gl::glTexSubImage3D(gl::GL_TEXTURE_3D, 0, 0, 0, 0, _sizeX, _sizeY, _sizeZ, gl::GL_RED, gl::GL_FLOAT, nullTexData.data());
     }
