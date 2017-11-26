@@ -179,27 +179,33 @@ namespace cmcray
 
             auto bounds = getBounds(mesh);
 
-            const float size_x = 800.0f;
-            const float size_y = 620.0f;
+            float size_x = 800.0f;
+            float size_y = 620.0f;
 
-            const float mx = (size_x - 40) / (bounds[1].x - bounds[0].x);
-            const float my = (size_y - 40) / (bounds[1].y - bounds[0].y);
+
+            ImGui::SetNextWindowSize(ImVec2(size_x, size_y), ImGuiCond_Once);
+            ImGui::Begin("Room Mesh");
+
+            auto win_min = ImGui::GetWindowContentRegionMin();
+            auto win_max = ImGui::GetWindowContentRegionMax();
+            size_x = win_max.x - win_min.x;
+            size_y = win_max.y - win_min.y;
+
+            const float mx = (size_x - 15) / (bounds[1].x - bounds[0].x);
+            const float my = (size_y - 15) / (bounds[1].y - bounds[0].y);
 
             const float m = std::min(mx, my);
 
             const float x0 = -m * bounds[0].x;
             const float y0 = -m * bounds[0].y;
 
-            ImGui::SetNextWindowSize(ImVec2(size_x, size_y), ImGuiCond_Always);
-            ImGui::Begin("Room Mesh", nullptr, ImGuiWindowFlags_NoResize);
-
             ImGui::Text("X: %7.3f, Y: %7.3f, Z: %7.3f", camera.position.x, camera.position.y, camera.position.z);
 
             auto drawList = ImGui::GetWindowDrawList();
             auto p = ImGui::GetCursorScreenPos();
 
-            auto imageTopLeft = ImVec2(p.x, p.y);
-            auto imageBottomRight = ImVec2(p.x + (bounds[1] - bounds[0]).x * m, p.y + (bounds[1] - bounds[0]).y * m);
+            auto imageTopLeft = ImVec2(p.x + 1, p.y + 1);
+            auto imageBottomRight = ImVec2(p.x + (bounds[1] - bounds[0]).x * m + 1, p.y + (bounds[1] - bounds[0]).y * m + 1);
 
             drawList->AddImage((ImTextureID)renderState.textureId, imageTopLeft, imageBottomRight);
 
