@@ -11,7 +11,11 @@ target_sources(cmc_raymarch PRIVATE
 		ui/MapWindow.h
 		render/camera.cpp
 		render/camera.h
+		render/composer.cpp
+		render/composer.h
 		render/compute.cpp
+		render/framebuffer.cpp
+		render/framebuffer.h
 		render/render.cpp
 		render/shader.cpp
 		render/shader.h

@@ -16,6 +16,7 @@
 #include "util/Logger.h"
 
 #include "stb/stb_image.h"
+#include "render/framebuffer.h"
 
 namespace cmcray
 {
@@ -28,15 +29,12 @@ namespace cmcray
             gl::GLuint vao;
             gl::GLuint vbo;
             gl::GLuint ibo;
-            gl::GLuint fb;
-            gl::GLuint rb;
-
-            gl::GLuint textureId;
-            gl::GLuint depthBuffer;
 
             gl::GLuint colorMapId;
 
-            Shader *shader;
+            Framebuffer *fb = nullptr;
+
+            Shader *shader = nullptr;
 
         } renderState;
 
@@ -52,31 +50,10 @@ namespace cmcray
             gl::glBufferData(gl::GL_ARRAY_BUFFER, sizeof(glm::vec2) * 4, quad, gl::GL_STATIC_DRAW);
             gl::glBindBuffer(gl::GL_ELEMENT_ARRAY_BUFFER, renderState.ibo);
             gl::glBufferData(gl::GL_ELEMENT_ARRAY_BUFFER, sizeof(gl::GLuint) * 4, indices, gl::GL_STATIC_DRAW);
-            gl::glGenFramebuffers(1, &renderState.fb);
-            gl::glBindFramebuffer(gl::GL_FRAMEBUFFER, renderState.fb);
-
-            gl::glGenTextures(1, &renderState.textureId);
-            gl::glBindTexture(gl::GL_TEXTURE_2D, renderState.textureId);
 
             auto voxmapSize = Config::voxelMapDimensions;
 
-            gl::glTexImage2D(gl::GL_TEXTURE_2D, 0, gl::GL_RGB, voxmapSize.x, voxmapSize.z, 0, gl::GL_RGB, gl::GL_UNSIGNED_BYTE, 0);
-
-            gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MIN_FILTER, gl::GL_LINEAR);
-            gl::glTexParameteri(gl::GL_TEXTURE_2D, gl::GL_TEXTURE_MAG_FILTER, gl::GL_LINEAR);
-
-            gl::glFramebufferTexture2D(gl::GL_FRAMEBUFFER, gl::GL_COLOR_ATTACHMENT0, gl::GL_TEXTURE_2D, renderState.textureId, 0);
-
-            gl::glGenRenderbuffers(1, &renderState.rb);
-            gl::glBindRenderbuffer(gl::GL_RENDERBUFFER, renderState.rb);
-            gl::glRenderbufferStorage(gl::GL_RENDERBUFFER, gl::GL_DEPTH24_STENCIL8, voxmapSize.x, voxmapSize.z);
-
-            gl::glFramebufferRenderbuffer(gl::GL_FRAMEBUFFER, gl::GL_DEPTH_STENCIL_ATTACHMENT, gl::GL_RENDERBUFFER, renderState.rb);
-
-            if (gl::glCheckFramebufferStatus(gl::GL_FRAMEBUFFER) != gl::GL_FRAMEBUFFER_COMPLETE)
-            {
-                Log(ERROR) << "Framebuffer incomplete, won't be able to render map properly";
-            }
+            renderState.fb = new Framebuffer({voxmapSize.x, voxmapSize.z});
 
             renderState.shader = new Shader();
 
@@ -120,12 +97,9 @@ namespace cmcray
 
         void renderVoxMap(VoxelMap &voxMap)
         {
-            gl::glBindVertexArray(renderState.vao);
+            FramebufferBinding fbb(*renderState.fb);
 
-            gl::glBindFramebuffer(gl::GL_FRAMEBUFFER, renderState.fb);
-            gl::GLint viewport[4];
-            gl::glGetIntegerv(gl::GL_VIEWPORT, viewport);
-            gl::glViewport(0, 0, Config::voxelMapDimensions.x, Config::voxelMapDimensions.z);
+            gl::glBindVertexArray(renderState.vao);
 
             gl::glBindBuffer(gl::GL_ARRAY_BUFFER, renderState.vbo);
             gl::glBindBuffer(gl::GL_ELEMENT_ARRAY_BUFFER, renderState.ibo);
@@ -144,8 +118,6 @@ namespace cmcray
 
             gl::glDrawArrays(gl::GL_TRIANGLE_STRIP, 0, 4);
 
-            gl::glBindFramebuffer(gl::GL_FRAMEBUFFER, 0);
-            gl::glViewport(viewport[0], viewport[1], viewport[2], viewport[3]);
         }
     }
 
@@ -207,7 +179,7 @@ namespace cmcray
             auto imageTopLeft = ImVec2(p.x + 1, p.y + 1);
             auto imageBottomRight = ImVec2(p.x + (bounds[1] - bounds[0]).x * m + 1, p.y + (bounds[1] - bounds[0]).y * m + 1);
 
-            drawList->AddImage((ImTextureID)renderState.textureId, imageTopLeft, imageBottomRight);
+            drawList->AddImage((ImTextureID)renderState.fb->getTex(), imageTopLeft, imageBottomRight);
 
             for (size_t i = 0; i < mesh.indices.size(); i += 3)
             {
