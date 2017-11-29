@@ -18,9 +18,13 @@ namespace cmcray
         gl::GLuint _framebufferId;
         gl::GLuint _renderbufferId;
         gl::GLuint _textureId;
-        glm::vec2 _size;
+        glm::ivec2 _size;
+        bool _isExternalTexture;
+
+        void initFramebuffer();
 
     public:
+        Framebuffer(glm::ivec2 size, gl::GLuint externalTexture);
         Framebuffer(glm::ivec2 size);
         ~Framebuffer();
 
