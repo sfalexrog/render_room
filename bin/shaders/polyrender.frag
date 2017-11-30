@@ -32,6 +32,10 @@ void main()
 	//  - light is at the vertical of the triangle -> 1
 	//  - light is perpendicular to the triangle -> 0
 	//  - light is behind the triangle -> 0
+	if (dot(n, l) < 0)
+	{
+	    n = -n;
+	}
 	float cosTheta = clamp( dot( n,l ), 0,1 );
 
 	// Eye vector (towards the camera)
@@ -48,8 +52,8 @@ void main()
 		// Ambient : simulates indirect lighting
 //		MaterialAmbientColor +
 		// Diffuse : "color" of the object
-		MaterialDiffuseColor * LightColor * LightPower * cosTheta / pow(distance, 0.5)// +
+		MaterialDiffuseColor * LightColor * LightPower * cosTheta / (distance * distance) +
 		// Specular : reflective highlight, like a mirror
-//		MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,5) / (distance*distance)
+		MaterialSpecularColor * LightColor * LightPower * pow(cosAlpha,8) / (distance*distance)
         , 1.0f);
 }
